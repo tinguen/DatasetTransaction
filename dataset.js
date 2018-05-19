@@ -98,18 +98,31 @@ Transaction.start = (data) => {
 };
 
 function DatasetTransaction(dataset) {
-  this.dataset = dataset;
+  if (!dataset) throw new Error('An argument expected');
+  this.selfTransaction = Transaction.start({ dataset });
+  this.dataset = this.selfTransaction.dataset;
 }
 
 DatasetTransaction.start = function(dataset) {
-  // place implementation here
+  if (!dataset) throw new Error('An argument expected');
+  if (!isObject(dataset) && dataset !== null ) {
+    const val = dataset;
+    dataset = [{data: val}];
+  }
+		
   return new DatasetTransaction(dataset);
 };
 
 DatasetTransaction.prototype.commit = function() {
-  // place implementation here
+  for (const item of this.dataset) {
+    if (item) item.commit();
+  }
+  this.selfTransaction.commit();
 };
 
 DatasetTransaction.prototype.rollback = function() {
-  // place implementation here
+  for (const item of this.dataset) {
+    item.rollback();	
+  }
+  this.selfTransaction.rollback();
 };
