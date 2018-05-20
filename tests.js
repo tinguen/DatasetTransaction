@@ -2,7 +2,7 @@
 
 const DatasetTransaction = require('./dataset.js'); 	
 const assert = require('assert');
-const _ = require('lodash'); // is used to compare objects
+const equals = require('lodash').isEqual; // is used to compare objects
 
 //** TEST 1 **//
 (function test1(
@@ -32,7 +32,7 @@ const _ = require('lodash'); // is used to compare objects
   ]; 
 	
   //ASSERTION
-  assert(_.isEqual(before, dataset), 'Dataset remains unchanged before commit');
+  assert(equals(before, dataset), 'Dataset remains unchanged before commit');
 	
   transaction.commit();
 	
@@ -46,7 +46,7 @@ const _ = require('lodash'); // is used to compare objects
   ];
 	
   //ASSERTION
-  assert(_.isEqual(after, dataset), 'Changes are applied after we performed .commit()');
+  assert(equals(after, dataset), 'Changes are applied after we performed .commit()');
   console.log('TEST 1: OK');
 }());
 // END OF TEST //
@@ -79,7 +79,7 @@ const _ = require('lodash'); // is used to compare objects
   ]; 
 	
   //ASSERTION
-  assert(_.isEqual(before, dataset), 'Dataset remains unchanged before commit');
+  assert(equals(before, dataset), 'Dataset remains unchanged before commit');
 
   transaction.rollback();
   transaction.commit();
@@ -94,7 +94,7 @@ const _ = require('lodash'); // is used to compare objects
   ];
 
   //ASSERTION
-  assert(_.isEqual(after, dataset), 'No modifications were made because .rollback() discarded all the changes');
+  assert(equals(after, dataset), 'No modifications were made because .rollback() discarded all the changes');
   console.log('TEST 2: OK');
 }());
 // END OF TEST //
@@ -117,7 +117,7 @@ const _ = require('lodash'); // is used to compare objects
   transaction.commit();
 
   //ASSERTION
-  assert(_.isEqual(transaction.dataset[1], { name: 'Max', description: undefined }), 'The remainder is succesfully added to the Dataset');
+  assert(equals(transaction.dataset[1], { name: 'Max', description: undefined }), 'The remainder is succesfully added to the Dataset');
   console.log('TEST 3: OK');
 }());
 // END OF TEST //
@@ -143,8 +143,8 @@ const _ = require('lodash'); // is used to compare objects
   transaction.commit();
 
   //ASSERTION
-  assert(_.isEqual(transaction.dataset[1], { data: string }), 'The string is succesfully added to the Dataset');
-  assert(_.isEqual(transaction.dataset[2], { data: integer }), 'The integer is succesfully added to the Dataset');
+  assert(equals(transaction.dataset[1], { data: string }), 'The string is succesfully added to the Dataset');
+  assert(equals(transaction.dataset[2], { data: integer }), 'The integer is succesfully added to the Dataset');
 
   const after = [
     { name: 'Max', description: undefined }
@@ -164,7 +164,7 @@ const _ = require('lodash'); // is used to compare objects
   transaction.commit();
 
   //ASSERTION	
-  assert(_.isEqual(transaction.dataset[0], { data: 1 }), 'The primitive is succesfully added to the Dataset');
+  assert(equals(transaction.dataset[0], { data: 1 }), 'The primitive is succesfully added to the Dataset');
   console.log('TEST 5: OK');
 }());
 // END OF TEST //
@@ -200,7 +200,7 @@ const _ = require('lodash'); // is used to compare objects
   ];
 
   //ASSERTION
-  assert(_.isEqual(after, dataset));
+  assert(equals(after, dataset));
   console.log('TEST 6: OK');
 }());
 // END OF TEST //
@@ -229,7 +229,7 @@ const _ = require('lodash'); // is used to compare objects
   ];
 	
   //ASSERTION
-  assert(_.isEqual(after, dataset));
+  assert(equals(after, dataset));
   console.log('TEST 7: OK');
 }());
 // END OF TEST //
