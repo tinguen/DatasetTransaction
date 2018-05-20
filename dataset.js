@@ -6,8 +6,8 @@ const isObject = (value) => {
   if (
     typeof value === 'object' || 
     typeof value === 'function'
-  )return true;
-		
+  ) return true;
+
   return false;
 };  
 
@@ -32,7 +32,7 @@ Transaction.start = (data) => {
   const applyToKeysOf = (target, fn) => {
     let res = {};
     Object.keys(target).forEach(
-      key => res[key] = target[key][fn]();
+      key => res[key] = target[key][fn]()
     );
 
     return res;
@@ -124,7 +124,7 @@ DatasetTransaction.start = function(dataset) {
     const val = dataset;
     dataset = [{data: val}];
   }
-		
+
   return new DatasetTransaction(dataset);
 };
 
@@ -137,9 +137,28 @@ DatasetTransaction.prototype.commit = function() {
 
 DatasetTransaction.prototype.rollback = function() {
   for (const item of this.dataset) {
-    item.rollback();	
+    item.rollback();
   }
   this.selfTransaction.rollback();
+};
+
+DatasetTransaction.prototype.add = function(dataset) {
+  if (!dataset) throw new Error('An argument expected');
+  const transactions = [];
+
+  if (dataset.isArray)
+    dataset.forEach(data => transactions.push(Transaction.start(data)));
+  else
+    transactions.push(Transaction.start(dataset));
+
+  transactions.forEach(transaction => this.dataset.push(transaction));
+};
+
+DatasetTransaction.prototype.clone = function() {
+  const dt = new DatasetTransaction({});
+  dt.selfTransaction = this.selfTransaction.clone();
+  dt.dataset = dt.selfTransaction.dataset;
+  return dt;
 };
 
 DatasetTransaction.prototype.delete = function(index) {
