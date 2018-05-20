@@ -158,3 +158,5 @@ DatasetTransaction.prototype.delete = function(index) {
   this.dataset.splice(index, 1);
   return true;
 };
+
+module.exports = DatasetTransaction;
