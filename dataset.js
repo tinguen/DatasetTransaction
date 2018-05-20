@@ -17,6 +17,7 @@ Transaction.start = (data) => {
     data = {data};
   
   let delta = {};
+  let deleted = [];
   let proxifiedKeys = {};
 
   const events = {
@@ -31,7 +32,7 @@ Transaction.start = (data) => {
   const applyToKeysOf = (target, fn) => {
     let res = {};
     Object.keys(target).forEach(
-      key => res[key] = target[key][fn]()
+      key => res[key] = target[key][fn]();
     );
 
     return res;
@@ -40,13 +41,16 @@ Transaction.start = (data) => {
   const methods = {
     commit: () => {
       Object.assign(data, delta);
+      deleted.forEach(key => delete data[key]);
       delta = {};
+      deleted = [];
       applyToKeysOf(proxifiedKeys, 'commit');
       
       emit('commit');
     },
     rollback: () => {
       delta = {};
+      deleted = [];
       applyToKeysOf(proxifiedKeys, 'rollback');
 
       emit('rollback');
@@ -55,6 +59,7 @@ Transaction.start = (data) => {
       const cloned = Transaction.start(data);
       const clonedProxifiedKeys = applyToKeysOf(proxifiedKeys, 'clone');
       Object.assign(cloned.delta, delta);
+      Object.assign(cloned.deleted, deleted);
       Object.assign(cloned.proxifiedKeys, clonedProxifiedKeys);
       return cloned;
     },
@@ -73,17 +78,27 @@ Transaction.start = (data) => {
         return proxifiedKeys[key];
       }
       if (key === 'delta') return delta;
+      if (key === 'deleted') return deleted;
       if (key === 'proxifiedKeys') return proxifiedKeys;
       if (methods.hasOwnProperty(key)) return methods[key];
       if (delta.hasOwnProperty(key)) return delta[key];
+      if (deleted.indexOf(key) !== -1) return undefined;
       return target[key];
     },
     set(target, key, val) {
+      const index = deleted.indexOf(key);
+      if (index !== -1) delete deleted.slice(index, 1);
       if (target[key] === val) delete delta[key];
       else delta[key] = val;
       return true;
     },
+    deleteProperty(target, key) {
+      if (target[key] || delta[key]) deleted.push(key);
+      delete delta[key];
+      return true;
+    },
     getOwnPropertyDescriptor: (target, key) => {
+      if (deleted.indexOf(key) !== -1) return undefined;
       return Object.getOwnPropertyDescriptor(
         delta.hasOwnProperty(key) ? delta : target, key
       );
@@ -125,4 +140,11 @@ DatasetTransaction.prototype.rollback = function() {
     item.rollback();	
   }
   this.selfTransaction.rollback();
+};
+
+DatasetTransaction.prototype.delete = function(index) {
+  if (!index) throw new Error('An argument expected');
+  if (this.dataset.length < index) return false;
+  this.dataset.splice(index, 1);
+  return true;
 };
