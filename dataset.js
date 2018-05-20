@@ -4,21 +4,19 @@ function Transaction() {}
 
 const isObject = (value) => {
   if (
-    typeof value === 'object' || 
+    typeof value === 'object' ||
     typeof value === 'function'
   ) return true;
 
   return false;
-};  
+};
 
 Transaction.start = (data) => {
-	
   if (!isObject(data) && data !== null)
-    data = {data};
-  
+    data = { data };
   let delta = {};
   let deleted = [];
-  let proxifiedKeys = {};
+  const proxifiedKeys = {};
 
   const events = {
     commit: [], rollback: [], timeout: [], change: []
@@ -28,13 +26,11 @@ Transaction.start = (data) => {
     const event = events[name];
     for (const listener of event) listener(data);
   };
-  
   const applyToKeysOf = (target, fn) => {
-    let res = {};
+    const res = {};
     Object.keys(target).forEach(
       key => res[key] = target[key][fn]()
     );
-
     return res;
   };
 
@@ -45,14 +41,12 @@ Transaction.start = (data) => {
       delta = {};
       deleted = [];
       applyToKeysOf(proxifiedKeys, 'commit');
-      
       emit('commit');
     },
     rollback: () => {
       delta = {};
       deleted = [];
       applyToKeysOf(proxifiedKeys, 'rollback');
-
       emit('rollback');
     },
     clone: () => {
@@ -63,9 +57,9 @@ Transaction.start = (data) => {
       Object.assign(cloned.proxifiedKeys, clonedProxifiedKeys);
       return cloned;
     },
-    on: (name, callback) => {	
+    on: (name, callback) => {
       const event = events[name];
-      if (event) event.push(callback);	
+      if (event) event.push(callback);
     }
   };
 
@@ -120,11 +114,10 @@ function DatasetTransaction(dataset) {
 
 DatasetTransaction.start = function(dataset) {
   if (!dataset) throw new Error('An argument expected');
-  if (!isObject(dataset) && dataset !== null ) {
+  if (!isObject(dataset) && dataset !== null) {
     const val = dataset;
-    dataset = [{data: val}];
+    dataset = [{ data: val }];
   }
-
   return new DatasetTransaction(dataset);
 };
 
@@ -145,12 +138,10 @@ DatasetTransaction.prototype.rollback = function() {
 DatasetTransaction.prototype.add = function(dataset) {
   if (!dataset) throw new Error('An argument expected');
   const transactions = [];
-
   if (dataset.isArray)
     dataset.forEach(data => transactions.push(Transaction.start(data)));
   else
     transactions.push(Transaction.start(dataset));
-
   transactions.forEach(transaction => this.dataset.push(transaction));
 };
 
