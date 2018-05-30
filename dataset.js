@@ -2,14 +2,7 @@
 
 function Transaction() {}
 
-const isObject = (value) => {
-  if (
-    typeof value === 'object' ||
-    typeof value === 'function'
-  ) return true;
-
-  return false;
-};
+const isObject = (value) => (typeof(value) === 'object');
 
 Transaction.start = (data) => {
   if (!isObject(data) && data !== null)
@@ -66,9 +59,10 @@ Transaction.start = (data) => {
 
   return new Proxy(data, {
     get(target, key) {
-      if (isObject(target[key]) && target[key] !== null) {
+      const value = target[key];
+      if (isObject(value) && value !== null) {
         if (!proxifiedKeys[key])  // lazy proxification of inner objects
-          return proxifiedKeys[key] = Transaction.start(target[key]);
+          return proxifiedKeys[key] = Transaction.start(value);
         return proxifiedKeys[key];
       }
       if (key === 'delta') return delta;
@@ -76,8 +70,8 @@ Transaction.start = (data) => {
       if (key === 'proxifiedKeys') return proxifiedKeys;
       if (methods.hasOwnProperty(key)) return methods[key];
       if (delta.hasOwnProperty(key)) return delta[key];
-      if (deleted.indexOf(key) !== -1) return undefined;
-      return target[key];
+      if (deleted.includes(key)) return undefined;
+      return value;
     },
     set(target, key, val) {
       const index = deleted.indexOf(key);
@@ -92,7 +86,7 @@ Transaction.start = (data) => {
       return true;
     },
     getOwnPropertyDescriptor: (target, key) => {
-      if (deleted.indexOf(key) !== -1) return undefined;
+      if (deleted.includes(key)) return undefined;
       return Object.getOwnPropertyDescriptor(
         delta.hasOwnProperty(key) ? delta : target, key
       );
