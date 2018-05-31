@@ -3,6 +3,9 @@
 function Transaction() {}
 
 const isObject = (value) => (typeof(value) === 'object');
+const isPositiveInt = (value) => (
+  !isNaN(value) && parseInt(value) === value && value >= 0
+);
 
 Transaction.start = (data) => {
   if (!isObject(data) && data !== null)
@@ -148,6 +151,9 @@ DatasetTransaction.prototype.clone = function() {
 
 DatasetTransaction.prototype.delete = function(index) {
   if (!index) throw new Error('An argument expected');
+  if (!isPositiveInt(index)) {
+    throw new Error('Index must postive integer value');
+  }
   if (this.dataset.length < index) return false;
   this.dataset.splice(index, 1);
   return true;
